@@ -7,6 +7,4 @@ router.get('/:post_id', postController.getById);
 router.post('/:post_id/comment', postController.addNewComment);
 router.post('/:post_id/like', postController.like);
 router.post('/:post_id/unlike', postController.unlike);
-// router.put('/:movieId', movieController.updateById);
-// router.delete('/:movieId', movieController.deleteById);
 module.exports = router;
