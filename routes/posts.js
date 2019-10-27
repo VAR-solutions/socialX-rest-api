@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const postController = require('../app/api/controllers/posts');
+router.get('/', postController.getAll);
+router.post('/', postController.create);
+router.get('/:post_id', postController.getById);
+router.post('/:post_id/comment', postController.addNewComment);
+router.post('/:post_id/like', postController.like);
+router.post('/:post_id/unlike', postController.unlike);
+// router.put('/:movieId', movieController.updateById);
+// router.delete('/:movieId', movieController.deleteById);
+module.exports = router;
