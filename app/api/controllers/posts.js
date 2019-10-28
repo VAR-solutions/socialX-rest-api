@@ -33,13 +33,38 @@ module.exports = {
 
         });
     },
+    deletePost: function (req, res, next) {
+        postModel.findByIdAndRemove(req.body.post_id, function (err, r) {
+            if (err) {
+                return res.status(400).json({
+                    error: err
+                })
+            } else {
+                return res.json({
+                    message: "deleted the post successfully"
+                })
+            }
+        })
+    },
+    updatePost: function (req, res, next) {
+        postModel.findByIdAndUpdate(req.body.post_id, { $set: { content: req.body.content } }, { new: true }, function (err, r) {
+            if (err) {
+                return res.status(400).json({
+                    error: err
+                });
+            } else {
+                res.json(r);
+                console.log(req.body.content)
+            }
+        })
+    },
     addNewComment: function (req, res, next) {
         // console.log(req.body)
         let comment = {}
         comment.postedBy = req.body.userId;
         comment.content = req.body.content;
         console.log(comment)
-        postModel.findByIdAndUpdate(req.body.post_id, { $push: { comments: comment } }, function (err, post) {
+        postModel.findByIdAndUpdate(req.body.post_id, { $push: { comments: comment } },{new: true}, function (err, post) {
             if (err) {
                 return res.status(400).json({
                     error: err
