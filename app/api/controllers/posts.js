@@ -64,7 +64,7 @@ module.exports = {
         comment.postedBy = req.body.userId;
         comment.content = req.body.content;
         console.log(comment)
-        postModel.findByIdAndUpdate(req.body.post_id, { $push: { comments: comment } },{new: true}, function (err, post) {
+        postModel.findByIdAndUpdate(req.body.post_id, { $push: { comments: comment } }, { new: true }, function (err, post) {
             if (err) {
                 return res.status(400).json({
                     error: err
