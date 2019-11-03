@@ -17,8 +17,8 @@ const PostSchema = new Schema({
         type: Buffer,
     },
     posted_on: {
-        type: Date,
-        default: Date.now,
+        type: Number,
+        default: new Date().getTime(),
         required: true
     },
     likes: {
