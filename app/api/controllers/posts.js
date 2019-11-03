@@ -14,10 +14,11 @@ module.exports = {
         let postsList = [];
         postModel.find({}, function (err, posts) {
             if (err) {
+                console.log(err);
                 next(err);
             } else {
                 for (let post of posts) {
-                    postsList.push({ id: post._id, username: post.username, content: post.content, posted_on: post.posted_on });
+                    postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on });
                 }
                 res.json({ status: "success", message: "Posts list found!!!", data: { posts: postsList } });
 
@@ -25,7 +26,7 @@ module.exports = {
         });
     },
     create: function (req, res, next) {
-        postModel.create({ username: req.body.username, content: req.body.content, posted_on: req.body.posted_on }, function (err, result) {
+        postModel.create({ username: req.body.username, content: req.body.content }, function (err, result) {
             if (err)
                 next(err);
             else
@@ -61,7 +62,7 @@ module.exports = {
     addNewComment: function (req, res, next) {
         // console.log(req.body)
         let comment = {}
-        comment.postedBy = req.body.userId;
+        comment.postedBy = req.body.username;
         comment.content = req.body.content;
         console.log(comment)
         postModel.findByIdAndUpdate(req.body.post_id, { $push: { comments: comment } }, { new: true }, function (err, post) {
@@ -76,10 +77,11 @@ module.exports = {
 
     },
     like: function (req, res, next) {
+        console.log(req.body)
         let n = []
         postModel.findById(req.body.post_id, (err, r) => {
             n = Array.from(r.likes)
-            n.push(req.body.userId)
+            n.push(req.body.username)
             let s = new Set(n)
             n = Array.from(s)
             postModel.findByIdAndUpdate(req.body.post_id, { $set: { likes: n } }, function (e, p) {
@@ -100,7 +102,7 @@ module.exports = {
         postModel.findById(req.body.post_id, (err, r) => {
             n = Array.from(r.likes)
             n = n.filter(function (e) {
-                return e != req.body.userId
+                return e != req.body.username
             })
             postModel.findByIdAndUpdate(req.body.post_id, { $set: { likes: n } }, function (e, p) {
                 if (e) {

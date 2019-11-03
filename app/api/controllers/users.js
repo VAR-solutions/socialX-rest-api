@@ -18,7 +18,7 @@ module.exports = {
             next(err);
          } else {
             if (bcrypt.compareSync(req.body.password, userInfo.password)) {
-               const token = jwt.sign({ id: userInfo._id }, req.app.get('secretKey'), { expiresIn: '1h' });
+               const token = jwt.sign({ id: userInfo._id }, req.app.get('secretKey'));
                res.json({ status: "success", message: "user found!!!", data: { user: userInfo, token: token } });
             } else {
                res.json({ status: "error", message: "Invalid email/password!!!", data: null });
@@ -40,5 +40,16 @@ module.exports = {
          }
       })
       // console.log(req.body)
+   },
+   getUser: function (req, res, next) {
+      userModel.findOne({ username: req.params.username }, (err, r) => {
+         if (err) {
+            return res.status(400).json({
+               error: err
+            });
+         } else {
+            res.json(r);
+         }
+      })
    }
 }
