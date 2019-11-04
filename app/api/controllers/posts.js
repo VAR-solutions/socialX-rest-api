@@ -1,7 +1,6 @@
 const postModel = require('../models/posts');
 module.exports = {
     getById: function (req, res, next) {
-        console.log(req.body);
         postModel.findById(req.params.post_id, function (err, postInfo) {
             if (err) {
                 next(err);
@@ -14,7 +13,6 @@ module.exports = {
         let postsList = [];
         postModel.find({}, function (err, posts) {
             if (err) {
-                console.log(err);
                 next(err);
             } else {
                 for (let post of posts) {
@@ -55,16 +53,13 @@ module.exports = {
                 });
             } else {
                 res.json(r);
-                console.log(req.body.content)
             }
         })
     },
     addNewComment: function (req, res, next) {
-        // console.log(req.body)
         let comment = {}
         comment.postedBy = req.body.username;
         comment.content = req.body.content;
-        console.log(comment)
         postModel.findByIdAndUpdate(req.body.post_id, { $push: { comments: comment } }, { new: true }, function (err, post) {
             if (err) {
                 return res.status(400).json({
@@ -76,8 +71,21 @@ module.exports = {
         })
 
     },
+
+    deleteComment: function(req, res, next){
+        postModel.findOneAndUpdate(req.body.post_id, {$pull: {comments: {_id: req.body.id}}}, {new: true} ,(err, r) => {
+            if(err) {
+                return res.status(400).json({
+                    error: err
+                });
+            }
+            else{
+                res.json(r);
+            }
+        })
+    },
+
     like: function (req, res, next) {
-        console.log(req.body)
         let n = []
         postModel.findById(req.body.post_id, (err, r) => {
             n = Array.from(r.likes)
