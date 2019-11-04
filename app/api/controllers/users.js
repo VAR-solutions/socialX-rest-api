@@ -26,6 +26,15 @@ module.exports = {
          }
       });
    },
+   getUsers: function(req,res,next){
+      userModel.find({},function (err,r) {
+         if (err) {
+            next(err);
+        } else {
+            res.json({ status: "success", message: "Users found!!!", data: { User: r } });
+        }
+      })
+   },
    updateProfile: function (req, res, next) {
       let location = req.body.location;
       let dob = req.body.dob;
@@ -49,6 +58,50 @@ module.exports = {
             });
          } else {
             res.json(r);
+         }
+      })
+   },
+
+   followUser: function(req, res, next) {
+      userModel.findOneAndUpdate( {username: req.body.username}, {$push: {following: req.body.user2}}, (err, r) => {
+         if(err) {
+            return res.status(400).json ({
+               error: err
+            });
+         }
+         else {
+            userModel.findOneAndUpdate({username: req.body.user2}, {$push: {followers: req.body.username}}, (e, rs) => {
+               if(e){
+                  return res.status(400).json ({
+                     error: e
+                  });
+               }
+               else{
+                  res.json({ status: "success", message: "User followed successfully!!!", data: null });
+               }
+            })
+         }
+      });
+   },
+
+   unfollowUser: function(req, res, next) {
+      userModel.findOneAndUpdate({username: req.body.username}, {$pull: {following: req.body.user2}}, (err, r) => {
+         if(err) {
+            return res.status(400).json ({
+               error: err
+            });
+         }
+         else{
+            userModel.findOneAndUpdate({username: req.body.user2}, {$pull: {followers: req.body.username}}, (e, rs) => {
+               if(e){
+                  return res.status(400).json ({
+                     error: e
+                  });
+               }
+               else{
+                  res.json({ status: "success", message: "User unfollowed successfully!!!", data: null });
+               }
+            })
          }
       })
    }
