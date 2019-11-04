@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../app/api/controllers/posts');
-router.get('/', postController.getAll);
+router.get('/', postController.getMyFeed);
 router.post('/', postController.create);
+router.get('/all', postController.getAll);
 router.get('/:post_id', postController.getById);
 router.post('/:post_id/comment', postController.addNewComment);
 router.post('/:post_id/comment/delete', postController.deleteComment);

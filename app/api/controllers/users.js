@@ -194,5 +194,37 @@ module.exports = {
             res.json(r.following);
          }
       })
+   },
+
+   suggestionsToFollow: function(req, res, next){
+      let allUsers = [];
+      let myFollowing = [];
+      let suggestions = [];
+      userModel.find((err, users) => {
+         if(err){
+            next(err)
+         }
+         else{
+            for(let user of users) {
+               allUsers.push(user.username)
+            }
+            userModel.findOne({username: req.params.username}, (er, followings) => {
+               if(err){
+                  return res.status(400).json({
+                     error: er
+                  });
+               }
+               else{
+                  myFollowing = Array.from(followings.following)
+                  suggestions = allUsers.filter(x => !myFollowing.includes(x));
+                  suggestions = suggestions.filter(function(val, index, suggestions){
+                     return val != req.params.username
+                  })
+                  res.json(suggestions)
+               }
+
+            })
+         }
+      })
    }
 }

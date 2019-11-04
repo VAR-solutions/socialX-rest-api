@@ -9,4 +9,5 @@ router.post('/follow', userController.followUser);
 router.post('/unfollow', userController.unfollowUser);
 router.get('/:username/followers', userController.getFollowers);
 router.get('/:username/following', userController.getFollowings);
+router.get('/:username/suggestions', userController.suggestionsToFollow);
 module.exports = router;
