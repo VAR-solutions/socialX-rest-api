@@ -36,6 +36,12 @@ const UserSchema = new Schema({
     location: {
         type: String,
         trim: true
+    },
+    followers : {
+        type:   Array,
+    },
+    following: {
+        type: Array,
     }
 });
 // hash user password before saving into database
