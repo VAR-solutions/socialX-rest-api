@@ -36,7 +36,6 @@ module.exports = {
       })
    },
    updateProfile: function (req, res, next) {
-      console.log(req.body);
       let location = req.body.location;
       let dob = req.body.dob;
       let mobile = req.body.mobile;
@@ -49,7 +48,6 @@ module.exports = {
             res.json(r);
          }
       })
-      // console.log(req.body)
    },
    getUser: function (req, res, next) {
       userModel.findOne({ username: req.params.username }, (err, r) => {
