@@ -48,7 +48,6 @@ module.exports = {
             res.json(r);
          }
       })
-      // console.log(req.body)
    },
    getUser: function (req, res, next) {
       userModel.findOne({ username: req.params.username }, (err, r) => {
