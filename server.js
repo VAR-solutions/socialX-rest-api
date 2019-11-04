@@ -1,6 +1,7 @@
 const express = require('express');
 const logger = require('morgan');
 const posts = require('./routes/posts'); 
+const auth = require('./routes/auth');
 const users = require('./routes/users');
 const bodyParser = require('body-parser');
 const mongoose = require('./config/database'); //database configuration
@@ -15,8 +16,9 @@ app.get('/', function(req, res){
 res.json({"tutorial" : "Build REST API with node.js"});
 });
 // public route
-app.use('/users', users);
+app.use('/users', auth);
 // private route
+app.use('/users',validateUser, users);
 app.use('/posts', validateUser, posts);
 app.get('/favicon.ico', function(req, res) {
     res.sendStatus(204);

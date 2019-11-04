@@ -36,6 +36,7 @@ module.exports = {
       })
    },
    updateProfile: function (req, res, next) {
+      console.log(req.body);
       let location = req.body.location;
       let dob = req.body.dob;
       let mobile = req.body.mobile;
