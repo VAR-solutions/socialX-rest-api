@@ -14,15 +14,22 @@ module.exports = {
    },
    authenticate: function (req, res, next) {
       userModel.findOne({ email: req.body.email }, function (err, userInfo) {
-         if (err) {
-            next(err);
-         } else {
-            if (bcrypt.compareSync(req.body.password, userInfo.password)) {
-               const token = jwt.sign({ id: userInfo._id }, req.app.get('secretKey'));
-               res.json({ status: "success", message: "user found!!!", data: { user: userInfo, token: token } });
+         if(userInfo) {
+            if (err) {
+               next(err);
             } else {
-               res.json({ status: "error", message: "Invalid email/password!!!", data: null });
+               if (bcrypt.compareSync(req.body.password, userInfo.password)) {
+                  const token = jwt.sign({ id: userInfo._id }, req.app.get('secretKey'));
+                  res.json({ status: "success", message: "user found!!!", data: { user: userInfo, token: token } });
+               } else {
+                  res.json({ status: "error", message: "Invalid email/password!!!", data: null });
+               }
             }
+         }
+         else{
+            return res.status(400).json({
+               error: "User not found!!!"
+            })
          }
       });
    },
@@ -62,45 +69,129 @@ module.exports = {
    },
 
    followUser: function(req, res, next) {
-      userModel.findOneAndUpdate( {username: req.body.username}, {$push: {following: req.body.user2}}, (err, r) => {
+      let followingUsers= [];
+      let user1 = "";
+      userModel.findById(req.body.userId, (err, r) => {
          if(err) {
-            return res.status(400).json ({
-               error: err
-            });
-         }
-         else {
-            userModel.findOneAndUpdate({username: req.body.user2}, {$push: {followers: req.body.username}}, (e, rs) => {
-               if(e){
-                  return res.status(400).json ({
-                     error: e
-                  });
-               }
-               else{
-                  res.json({ status: "success", message: "User followed successfully!!!", data: null });
-               }
-            })
-         }
-      });
-   },
-
-   unfollowUser: function(req, res, next) {
-      userModel.findOneAndUpdate({username: req.body.username}, {$pull: {following: req.body.user2}}, (err, r) => {
-         if(err) {
-            return res.status(400).json ({
+            return res.status(400).json({
                error: err
             });
          }
          else{
-            userModel.findOneAndUpdate({username: req.body.user2}, {$pull: {followers: req.body.username}}, (e, rs) => {
-               if(e){
-                  return res.status(400).json ({
-                     error: e
-                  });
-               }
-               else{
-                  res.json({ status: "success", message: "User unfollowed successfully!!!", data: null });
-               }
-            })
+            followingUsers = Array.from(r.following);
+            user1 = r.username
+            if(followingUsers.indexOf(req.body.user2) == -1){
+               followingUsers.push(req.body.user2);
+               let s = new Set(followingUsers)
+               followingUsers = Array.from(s)
+               userModel.findByIdAndUpdate(req.body.userId, {$set: {following: followingUsers}}, {new: true}, (er, rs) => {
+                  if(er){
+                     return res.status(400).json({
+                        error: er
+                     });
+                  }
+                  else{
+                     followersUser2 = [];
+                     userModel.findOne({username: req.body.user2}, (e, rr)=> {
+                        followersUser2 = Array.from(rr.followers);
+                        if(followersUser2.indexOf(user1) == -1) {
+                           followersUser2.push(user1)
+                           s = new Set(followersUser2)
+                           followersUser2 = Array.from(s)
+                           userModel.findOneAndUpdate({username: req.body.user2}, {$set: {followers: followersUser2}}, {new: true}, (eee, rrr) => {
+                              if(eee){
+                                 return res.status(400).json({
+                                    error: eee
+                                 });
+                              }
+                              else{
+                                 res.json({ status: "success", message: "User followed successfully!!!", data: null });
+                              }
+                           })
+                        }
+                        else{
+                           res.json({ status: "failure", message: "User2 already has this follower!!!", data: null });
+                        }
+                     })
+                  }
+               })
+            }
+            else{
+               res.json({ status: "failure", message: "User already followed!!!", data: null });
+            }
+         }
+      })
+   },
+
+   unfollowUser: function(req, res, next) {
+      let followingUsers= [];
+      let user1 = "";
+      userModel.findById(req.body.userId, (err, r) => {
+         if(err) {
+            return res.status(400).json({
+               error: err
+            });
+         }
+         else{
+            followingUsers = Array.from(r.following);
+            user1 = r.username
+            if(followingUsers.indexOf(req.body.user2) >= 0){
+               userModel.findByIdAndUpdate(req.body.userId, {$pull: {following: req.body.user2}}, {new: true}, (er, rs) => {
+                  if(er){
+                     return res.status(400).json({
+                        error: er
+                     });
+                  }
+                  else{
+                     followersUser2 = [];
+                     userModel.findOne({username: req.body.user2}, (e, rr)=> {
+                        followersUser2 = Array.from(rr.followers);
+                        if(followersUser2.indexOf(user1) >= 0) {
+                           userModel.findOneAndUpdate({username: req.body.user2}, {$pull: {followers: user1}}, {new: true}, (eee, rrr) => {
+                              if(eee){
+                                 return res.status(400).json({
+                                    error: eee
+                                 });
+                              }
+                              else{
+                                 res.json({ status: "success", message: "User unfollowed successfully!!!", data: null });
+                              }
+                           })
+                        }
+                        else{
+                           res.json({ status: "failure", message: "User2 not has this follower!!!", data: null });
+                        }
+                     })
+                  }
+               })
+            }
+            else{
+               res.json({ status: "failure", message: "User already unfollowed!!!", data: null });
+            }
+         }
+      })
+   },
+
+   getFollowers: function(req, res, next){
+      userModel.findOne({username: req.params.username}, (err, r) => {
+         if (err) {
+            return res.status(400).json({
+               error: err
+            });
+         } else {
+            res.json(r.followers);
+         }
+      })
+   },
+
+   getFollowings: function(req, res, next){
+      userModel.findOne({username: req.params.username}, (err, r) => {
+         if (err) {
+            return res.status(400).json({
+               error: err
+            });
+         } else {
+            res.json(r.following);
          }
       })
    }
