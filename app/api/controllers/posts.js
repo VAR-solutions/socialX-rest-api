@@ -1,4 +1,6 @@
 const postModel = require('../models/posts');
+const userModel = require('../models/users')
+
 module.exports = {
     getById: function (req, res, next) {
         postModel.findById(req.params.post_id, function (err, postInfo) {
@@ -11,17 +13,46 @@ module.exports = {
     },
     getAll: function (req, res, next) {
         let postsList = [];
-        postModel.find({}, function (err, posts) {
-            if (err) {
-                next(err);
-            } else {
+        postModel.find({}, (er, posts) => {
+            if (er) {
+                next(er)
+            }
+            else {
                 for (let post of posts) {
-                    postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on });
+                    postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on })
                 }
                 res.json({ status: "success", message: "Posts list found!!!", data: { posts: postsList } });
+            }
+        })
+    },
+    getMyFeed: function (req, res, next) {
+        let postsList = [];
+        let validUsers = [];
+        userModel.findById(req.body.userId, (err, r) => {
+            if (err) {
+                return res.status(400).json({
+                    error: err
+                });
+            } else {
+                validUsers = Array.from(r.following);
+                validUsers.push(r.username);
+
+                postModel.find({}, (er, posts) => {
+                    if (er) {
+                        next(er)
+                    }
+                    else {
+                        for (let post of posts) {
+                            if (validUsers.includes(post.username)) {
+                                postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on })
+                            }
+                        }
+                        res.json({ status: "success", message: "Posts list found!!!", data: { posts: postsList } });
+                    }
+                })
 
             }
-        });
+        })
     },
     create: function (req, res, next) {
         postModel.create({ username: req.body.username, content: req.body.content }, function (err, result) {
@@ -72,14 +103,14 @@ module.exports = {
 
     },
 
-    deleteComment: function(req, res, next){
-        postModel.findOneAndUpdate(req.body.post_id, {$pull: {comments: {_id: req.body.id}}}, {new: true} ,(err, r) => {
-            if(err) {
+    deleteComment: function (req, res, next) {
+        postModel.findOneAndUpdate(req.body.post_id, { $pull: { comments: { _id: req.body.id } } }, { new: true }, (err, r) => {
+            if (err) {
                 return res.status(400).json({
                     error: err
                 });
             }
-            else{
+            else {
                 res.json(r);
             }
         })
