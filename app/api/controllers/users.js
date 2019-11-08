@@ -66,7 +66,7 @@ module.exports = {
             res.json({
                error: false,
                message: "Users found!!!",
-               data: { User: r }
+               data: r
             });
          }
       })
@@ -86,7 +86,7 @@ module.exports = {
             res.json({
                error: false,
                message: "Profile Updated",
-               data: { User: r }
+               data: r
             });
          }
       })
@@ -103,7 +103,7 @@ module.exports = {
             res.json({
                error: false,
                message: "User found!!!",
-               data: { User: r }
+               data: r
             });
          }
       })

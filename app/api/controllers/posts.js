@@ -58,6 +58,39 @@ module.exports = {
         })
     },
 
+    getMyPosts: function(req, res, next) {
+        let postsList = [];
+        userModel.findOne({username: req.params.username}, (er, r) => {
+            if(er || r == null){
+                return res.status(400).json({
+                    error: true,
+                    message: "User not found"
+                });
+            }
+            else{
+                postModel.find({}, (err, posts) => {
+                    if(err){
+                        return res.status(400).json({
+                            error: true,
+                            message: "Error getting posts"
+                        })
+                    }
+                    else{
+                        for (let post of posts) {
+                            if(post.username == req.params.username) {
+                                postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on })
+                            }
+                        }
+                        res.json({
+                            error: false,
+                            message: "Post found.",
+                            data: postsList
+                        });
+                    }
+                })
+            }
+        })
+    },
     getMyFeed: function (req, res, next) {
         let postsList = [];
         let validUsers = [];
