@@ -2,36 +2,70 @@ const postModel = require('../models/posts');
 const userModel = require('../models/users')
 
 module.exports = {
+    create: function (req, res, next) {
+        postModel.create({ username: req.body.username, content: req.body.content }, function (err, result) {
+            if (err)
+                return  res.status(400).json({
+                    error: true,
+                    message: "Error creating post!"
+                })
+            else
+                res.json({ 
+                    error: false, 
+                    message: "Post added successfully!!!", 
+                    data: null 
+                });
+
+        });
+    },
+
     getById: function (req, res, next) {
         postModel.findById(req.params.post_id, function (err, postInfo) {
-            if (err) {
-                next(err);
+            if (err || postInfo == null) {
+                return res.status(400).json({
+                    error: true,
+                    message: "Post not found!"
+                })
             } else {
-                res.json({ status: "success", message: "Post found!!!", data: { Post: postInfo } });
+                res.json({
+                    error: false,
+                    message: "Post found.",
+                    data: postInfo
+                });
             }
         });
     },
+
     getAll: function (req, res, next) {
         let postsList = [];
         postModel.find({}, (er, posts) => {
-            if (er) {
-                next(er)
+            if (er || posts == null) {
+                return res.status(400).json({
+                    error: true,
+                    message: "Posts not found!"
+                })
             }
             else {
                 for (let post of posts) {
                     postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on })
                 }
-                res.json({ status: "success", message: "Posts list found!!!", data: { posts: postsList } });
+                res.json({
+                    error: false,
+                    message: "Post found.",
+                    data: postsList
+                });
             }
         })
     },
+
     getMyFeed: function (req, res, next) {
         let postsList = [];
         let validUsers = [];
         userModel.findById(req.body.userId, (err, r) => {
-            if (err) {
+            if (err || r == null) {
                 return res.status(400).json({
-                    error: err
+                    error: true,
+                    message: "User not found!"
                 });
             } else {
                 validUsers = Array.from(r.following);
@@ -39,7 +73,10 @@ module.exports = {
 
                 postModel.find({}, (er, posts) => {
                     if (er) {
-                        next(er)
+                        return res.status(400).json({
+                            error: true,
+                            message: "Posts not found!"
+                        })
                     }
                     else {
                         for (let post of posts) {
@@ -47,57 +84,67 @@ module.exports = {
                                 postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on })
                             }
                         }
-                        res.json({ status: "success", message: "Posts list found!!!", data: { posts: postsList } });
+                        res.json({
+                            error: false,
+                            message: "Post found.",
+                            data: postsList
+                        });
                     }
                 })
 
             }
         })
     },
-    create: function (req, res, next) {
-        postModel.create({ username: req.body.username, content: req.body.content }, function (err, result) {
-            if (err)
-                next(err);
-            else
-                res.json({ status: "success", message: "Post added successfully!!!", data: null });
 
-        });
-    },
     deletePost: function (req, res, next) {
         postModel.findByIdAndRemove(req.body.post_id, function (err, r) {
-            if (err) {
+            if (err || r == null) {
                 return res.status(400).json({
-                    error: err
+                    error: true,
+                    message: "Post not found!"
                 })
             } else {
-                return res.json({
-                    message: "deleted the post successfully"
+                res.json({
+                    error: false,
+                    message: "Post deleted successfully."
                 })
             }
         })
     },
+
     updatePost: function (req, res, next) {
         postModel.findByIdAndUpdate(req.body.post_id, { $set: { content: req.body.content } }, { new: true }, function (err, r) {
-            if (err) {
+            if (err || r == null) {
                 return res.status(400).json({
-                    error: err
+                    error: true,
+                    message: "Post not found"
                 });
             } else {
-                res.json(r);
+                res.json({
+                    error: false,
+                    message: "Post updated",
+                    data: r
+                });
             }
         })
     },
+
     addNewComment: function (req, res, next) {
         let comment = {}
         comment.postedBy = req.body.username;
         comment.content = req.body.content;
         postModel.findByIdAndUpdate(req.body.post_id, { $push: { comments: comment } }, { new: true }, function (err, post) {
-            if (err) {
+            if (err || post == null) {
                 return res.status(400).json({
-                    error: err
+                    error: true,
+                    message: "Error fetching post's details"
                 });
             } else {
-                res.json(post);
+                res.json({
+                    error: false,
+                    message: "Comment added.",
+                    data: post
+                });
             }
         })
 
@@ -105,13 +152,18 @@ module.exports = {
 
     deleteComment: function (req, res, next) {
         postModel.findOneAndUpdate(req.body.post_id, { $pull: { comments: { _id: req.body.id } } }, { new: true }, (err, r) => {
-            if (err) {
+            if (err || r == null) {
                 return res.status(400).json({
-                    error: err
+                    error: true,
+                    message: "Error fetching post"
                 });
             }
             else {
-                res.json(r);
+                res.json({
+                    error: false,
+                    message: "COmment deleted.",
+                    data: r
+                });
             }
         })
     },
@@ -119,37 +171,58 @@ module.exports = {
     like: function (req, res, next) {
         let n = []
         postModel.findById(req.body.post_id, (err, r) => {
-            n = Array.from(r.likes)
-            n.push(req.body.username)
-            let s = new Set(n)
-            n = Array.from(s)
-            postModel.findByIdAndUpdate(req.body.post_id, { $set: { likes: n } }, function (e, p) {
-                if (e) {
-                    return res.status(400).json({
-                        error: e
-                    });
-                } else {
-                    res.json({
-                        likes: n
-                    });
-                }
-            })
+            if (err || r == null) {
+                return res.status(400).json({
+                    error: true,
+                    message: "Error getting post!"
+                })
+            }
+            else {
+                n = Array.from(r.likes)
+                n.push(req.body.username)
+                let s = new Set(n)
+                n = Array.from(s)
+                postModel.findByIdAndUpdate(req.body.post_id, { $set: { likes: n } }, function (e, p) {
+                    if (e) {
+                        return res.status(400).json({
+                            error: true,
+                            message: "Error getting post!"
+                        });
+                    } else {
+                        res.json({
+                            error: false,
+                            message: "Post liked.",
+                            likes: n
+                        });
+                    }
+                })
+            }
         });
     },
+
     unlike: function (req, res, next) {
         let n = []
         postModel.findById(req.body.post_id, (err, r) => {
+            if(err || r == null) {
+                return res.status(400).json({
+                    error: true,
+                    message: "Post not found"
+                })
+            }
             n = Array.from(r.likes)
             n = n.filter(function (e) {
                 return e != req.body.username
             })
             postModel.findByIdAndUpdate(req.body.post_id, { $set: { likes: n } }, function (e, p) {
-                if (e) {
+                if (e || p == null) {
                     return res.status(400).json({
-                        error: e
+                        error: true,
+                        message: "Post not found!"
                     });
                 } else {
                     res.json({
+                        error: false,
+                        message: "Post liked.",
                         likes: n
                     });
                 }
