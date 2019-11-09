@@ -29,7 +29,7 @@ const UserSchema = new Schema({
     mobile: {
         type: String
     },
-    db: {
+    dp: {
         data: Buffer,
         contentType: String
     },
