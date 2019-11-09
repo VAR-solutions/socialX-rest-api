@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../app/api/controllers/posts');
+const multer = require('multer');
+var upload = multer({ dest: 'uploads/' })
+
 router.get('/', postController.getMyFeed);
-router.post('/', postController.create);
+router.post('/', upload.single('photo'), postController.create);
 router.get('/all', postController.getAll);
 router.get('/:username', postController.getMyPosts);
 router.get('/:post_id', postController.getById);
