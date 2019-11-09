@@ -14,11 +14,10 @@ const PostSchema = new Schema({
         required: true,
     },
     photo: {
-        type: Buffer,
+        data: Buffer, contentType: String
     },
     posted_on: {
         type: Number,
-        default: new Date().getTime(),
         required: true
     },
     likes: {
