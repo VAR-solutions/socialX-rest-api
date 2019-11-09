@@ -1,22 +1,45 @@
 const postModel = require('../models/posts');
 const userModel = require('../models/users')
+const fs = require("fs");
 
 module.exports = {
     create: function (req, res, next) {
-        postModel.create({ username: req.body.username, content: req.body.content }, function (err, result) {
-            if (err)
-                return  res.status(400).json({
+        // console.log(req.body);
+        // console.log(req.file.path);
+        var k = new postModel();
+        k.photo.data = fs.readFileSync(req.file.path)
+        k.photo.contentType = 'image/png';
+        k.username = req.body.username;
+        k.content = req.body.content;
+        k.posted_on = req.body.time;
+        k.save().then((r, err) => {
+            if (err) {
+                return res.status(400).json({
                     error: true,
-                    message: "Error creating post!"
-                })
-            else
-                res.json({ 
-                    error: false, 
-                    message: "Post added successfully!!!", 
-                    data: null 
+                    message: "Error!!!"
                 });
-
+            } else {
+                return res.json({
+                    error: false,
+                    message: "Post added successfully",
+                    data: r
+                });
+            }
         });
+        // postModel.create({ username: req.body.username, content: req.body.content }, function (err, result) {
+        //     if (err)
+        //         return  res.status(400).json({
+        //             error: true,
+        //             message: "Error creating post!"
+        //         })
+        //     else
+        //         res.json({ 
+        //             error: false, 
+        //             message: "Post added successfully!!!", 
+        //             data: null 
+        //         });
+
+        // });
     },
 
     getById: function (req, res, next) {
@@ -38,7 +61,7 @@ module.exports = {
 
     getAll: function (req, res, next) {
         let postsList = [];
-        postModel.find({}).sort({posted_on: 1}).exec( (er, posts) => {
+        postModel.find({}, (er, posts) => {
             if (er || posts == null) {
                 return res.status(400).json({
                     error: true,
@@ -58,27 +81,27 @@ module.exports = {
         })
     },
 
-    getMyPosts: function(req, res, next) {
+    getMyPosts: function (req, res, next) {
         let postsList = [];
-        userModel.findOne({username: req.params.username}, (er, r) => {
-            if(er || r == null){
+        userModel.findOne({ username: req.params.username }, (er, r) => {
+            if (er || r == null) {
                 return res.status(400).json({
                     error: true,
                     message: "User not found"
                 });
             }
-            else{
-                postModel.find({}).sort({posted_on: 1}).exec(  (err, posts) => {
-                    if(err){
+            else {
+                postModel.find({}, (err, posts) => {
+                    if (err) {
                         return res.status(400).json({
                             error: true,
                             message: "Error getting posts"
                         })
                     }
-                    else{
+                    else {
                         for (let post of posts) {
-                            if(post.username == req.params.username) {
-                                postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on })
+                            if (post.username == req.params.username) {
+                                postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on, photo: post.photo })
                             }
                         }
                         res.json({
@@ -104,7 +127,7 @@ module.exports = {
                 validUsers = Array.from(r.following);
                 validUsers.push(r.username);
 
-                postModel.find({}).sort({posted_on: 1}).exec( (er, posts) => {
+                postModel.find({}, (er, posts) => {
                     if (er) {
                         return res.status(400).json({
                             error: true,
@@ -114,7 +137,7 @@ module.exports = {
                     else {
                         for (let post of posts) {
                             if (validUsers.includes(post.username)) {
-                                postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on })
+                                postsList.push({ id: post._id, username: post.username, content: post.content, comments: post.comments, likes: post.likes, posted_on: post.posted_on, photo: post.photo })
                             }
                         }
                         res.json({
@@ -194,7 +217,7 @@ module.exports = {
             else {
                 res.json({
                     error: false,
-                    message: "Comment deleted.",
+                    message: "COmment deleted.",
                     data: r
                 });
             }
@@ -236,7 +259,7 @@ module.exports = {
     unlike: function (req, res, next) {
         let n = []
         postModel.findById(req.body.post_id, (err, r) => {
-            if(err || r == null) {
+            if (err || r == null) {
                 return res.status(400).json({
                     error: true,
                     message: "Post not found"
