@@ -1,6 +1,7 @@
 const userModel = require('../models/users');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const fs = require("fs");
 
 module.exports = {
    create: function (req, res, next) {
@@ -35,7 +36,8 @@ module.exports = {
                   res.json({
                      error: false,
                      message: "User found. Login Successful",
-                     data: { user: userInfo, token: token }
+                     data: userInfo,
+                     token: token
                   });
                } else {
                   res.json({
@@ -72,6 +74,7 @@ module.exports = {
       })
    },
    updateProfile: function (req, res, next) {
+      console.log(req.body)
       let location = req.body.location;
       let dob = req.body.dob;
       let mobile = req.body.mobile;
@@ -86,6 +89,23 @@ module.exports = {
             res.json({
                error: false,
                message: "Profile Updated",
+               data: r
+            });
+         }
+      })
+   },
+   updateDp: function (req, res, next) {
+      userModel.findOneAndUpdate({ username: req.body.username }, { $set: { dp: { data: fs.readFileSync(req.file.path), contentType: 'image/png' } } }, { new: true }, (err, r) => {
+         if (err || r == null) {
+            return res.status(400).json({
+               error: true,
+               message: "Error!!!"
+            });
+         }
+         else {
+            res.json({
+               error: false,
+               message: "DP updated",
                data: r
             });
          }
@@ -271,7 +291,7 @@ module.exports = {
 
    getFollowers: function (req, res, next) {
       userModel.findOne({ username: req.params.username }, (err, r) => {
-         if(r){
+         if (r) {
             if (err) {
                res.status(400).json({
                   error: true,
@@ -286,7 +306,7 @@ module.exports = {
                });
             }
          }
-         else{
+         else {
             res.status(400).json({
                error: true,
                message: "User not found!"
@@ -297,7 +317,7 @@ module.exports = {
 
    getFollowings: function (req, res, next) {
       userModel.findOne({ username: req.params.username }, (err, r) => {
-         if(r){
+         if (r) {
             if (err) {
                return res.status(400).json({
                   error: true,
@@ -312,7 +332,7 @@ module.exports = {
                });
             }
          }
-         else{
+         else {
             return res.status(400).json({
                error: true,
                message: "User not found!",
