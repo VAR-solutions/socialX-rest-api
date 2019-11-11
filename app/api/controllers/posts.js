@@ -153,7 +153,7 @@ module.exports = {
     },
 
     deletePost: function (req, res, next) {
-        postModel.findByIdAndRemove(req.body.post_id, function (err, r) {
+        postModel.findByIdAndRemove(req.params.post_id, function (err, r) {
             if (err || r == null) {
                 return res.status(400).json({
                     error: true,
