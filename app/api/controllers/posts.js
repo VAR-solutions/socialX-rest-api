@@ -61,7 +61,7 @@ module.exports = {
 
     getAll: function (req, res, next) {
         let postsList = [];
-        postModel.find({}, (er, posts) => {
+        postModel.find({}).sort({posted_on: -1}).exec( (er, posts) => {
             if (er || posts == null) {
                 return res.status(400).json({
                     error: true,
@@ -91,7 +91,7 @@ module.exports = {
                 });
             }
             else {
-                postModel.find({}, (err, posts) => {
+                postModel.find({}).sort({posted_on: -1}).exec( (err, posts) => {
                     if (err) {
                         return res.status(400).json({
                             error: true,
@@ -127,7 +127,7 @@ module.exports = {
                 validUsers = Array.from(r.following);
                 validUsers.push(r.username);
 
-                postModel.find({}, (er, posts) => {
+                postModel.find({}).sort({posted_on: -1}).exec( (er, posts) => {
                     if (er) {
                         return res.status(400).json({
                             error: true,

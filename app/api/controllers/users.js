@@ -57,7 +57,7 @@ module.exports = {
       });
    },
    getUsers: function (req, res, next) {
-      userModel.find({}, { password: 0 }, function (err, r) {
+      userModel.find({}, { password: 0 }).sort({username: -1}).exec( function (err, r) {
          if (err || r == null) {
             return res.status(400).json({
                error: true,
