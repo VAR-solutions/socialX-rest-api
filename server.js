@@ -3,6 +3,8 @@ const logger = require('morgan');
 const posts = require('./routes/posts');
 const auth = require('./routes/auth');
 const users = require('./routes/users');
+const chat = require('./routes/chat');
+socketEvents = require('./socketEvents');
 const bodyParser = require('body-parser');
 const mongoose = require('./config/database'); //database configuration
 var jwt = require('jsonwebtoken');
@@ -18,6 +20,7 @@ app.get('/', function (req, res) {
 // public route
 app.use('/users', auth);
 // private route
+app.use('/chat', validateUser, chat);
 app.use('/users', validateUser, users);
 app.use('/posts', validateUser, posts);
 app.get('/favicon.ico', function (req, res) {
@@ -51,6 +54,10 @@ app.use(function (err, req, res, next) {
   else
     res.status(500).json({ message: "Something looks wrong :( !!!" });
 });
-app.listen(8000, function () {
+var server = app.listen(8000, function () {
   console.log('Node server listening on port 8000');
 });
+
+const io = require('socket.io').listen(server);
+
+socketEvents(io);  
