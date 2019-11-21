@@ -7,6 +7,7 @@ var upload = multer({ dest: 'uploads/' })
 router.get('/', userController.getUsers);
 router.put('/update', userController.updateProfile);
 router.get('/:username', userController.getUser);
+router.get('/byid/:id', userController.getUserById);
 router.post('/follow', userController.followUser);
 router.post('/unfollow', userController.unfollowUser);
 router.get('/:username/followers', userController.getFollowers);

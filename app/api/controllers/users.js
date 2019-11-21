@@ -56,8 +56,25 @@ module.exports = {
          }
       });
    },
+   getUserById: function (req, res, next) {
+      userModel.findById(req.params.id, (err, r) => {
+         if (err || r == null) {
+            return res.status(400).json({
+               error: true,
+               message: "User not found!"
+            });
+         }
+         else {
+            res.json({
+               error: false,
+               message: "User found!!!",
+               data: r
+            });
+         }
+      })
+   },
    getUsers: function (req, res, next) {
-      userModel.find({}, { password: 0 }).sort({username: -1}).exec( function (err, r) {
+      userModel.find({}, { password: 0 }).sort({ username: -1 }).exec(function (err, r) {
          if (err || r == null) {
             return res.status(400).json({
                error: true,
